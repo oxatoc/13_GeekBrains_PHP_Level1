@@ -1,3 +1,8 @@
+<?php
+/* Загрузка общих функций и данных */
+require_once $_SERVER['DOCUMENT_ROOT'] . '/../engine/functions.php';
+?>
+
 <!--Загрузка шапки-->
 <?php require_once $_SERVER['DOCUMENT_ROOT'] . '/../templates/header.php'; ?>
 

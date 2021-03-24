@@ -1,4 +1,7 @@
 <?php
+session_start();
+
+/* Инциализация сессии */
 
 /* Загрузка именованных маршрутов */
 if (empty($named_routes)) {
@@ -6,6 +9,47 @@ if (empty($named_routes)) {
 }
 
 /* Общие функции */
+
+/**
+ * Добавление товара в корзину
+ */
+
+function cart_add($product_data){
+    /* если в сессии еще не создан массив корзины, то создаем */
+    $product_data['quantity'] = 1;
+    $id = $product_data['id'];
+    if (!isset($_SESSION['cart'])){
+        $_SESSION['cart'][$id] = $product_data;
+        return;
+    }
+
+    /* Если в сессии уже хранится такой товар, то увеличиваем количество на единицу */
+    if (isset($_SESSION['cart'][$id])){
+        $_SESSION['cart'][$id]['quantity'] += 1;
+        return;
+    }
+
+    /* Иначе добавляем товар в корзину */
+    $_SESSION['cart'][$id] = $product_data;
+}
+
+function cart_delete($id){
+    unset($_SESSION['cart'][$id]);
+    return;
+}
+
+/**
+ * Получение перечня товаров в корзине
+ */
+function cart_index(){
+
+    if (isset($_SESSION['cart'])){
+
+
+        return $_SESSION['cart'];
+    }
+    return [];
+}
 
 /* Увеличение счетчика просмотров */
 function dbhelper_count_view($id){
@@ -75,8 +119,10 @@ function dbhelper_get_array($sql)
     $result = mysqli_query($link, $sql);
     if (!$result) die(mysqli_error($link));
 
+    $array = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
     mysqli_close($link);
-    return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    return $array;
 }
 
 /* Получение записи одного продукта */
@@ -90,6 +136,27 @@ function dbhelper_get_product($id)
 
     /* Если запись товара найдена, то возвращаем массив */
     return $rows[0];
+}
+
+/* Поиск записи зарегистрированного пользователя */
+function dbhelper_get_user($name){
+
+    $dbconfig = include $_SERVER['DOCUMENT_ROOT'] . '/../config/db.php';
+    $link = mysqli_connect($dbconfig['servername'], $dbconfig['username'], $dbconfig['password'], $dbconfig['database']);
+
+    $user_name = dbhelper_escape_string($link, $name);
+    if (!$user_name) die('имя пользователя не прошло валидацию');
+
+    $sql = "SELECT * FROM users WHERE name = '{$user_name}' LIMIT 1";
+
+    $result = mysqli_query($link, $sql);
+    if (!$result) die(mysqli_error($link));
+    $array = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    if (count($array) == 0){
+        return false;
+    }
+    return $array[0];
 }
 
 /* Обновление записи товара в базе данных */
@@ -138,6 +205,43 @@ function dbhelper_escape_string($db_link, $str = false)
     return $result;
 }
 
+/**
+ * Экранирование для вывода в браузер пользователя
+ */
+function escape_for_html($data){
+    return htmlentities(strip_tags($data), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+/**
+ * Сохранение файла
+ *
+ * @return string возвращает путь к сохраненному файлу
+ */
+function image_store($file_array)
+{
+    /* Если файл получен, то сохраняем на диске, добавляем запись в базу данных и перенаправляем на ту же страницу*/
+    if (empty($file_array['tmp_name'])) return false;
+    $image = basename($file_array['name']);
+    $address = '/img/' . $image;
+    move_uploaded_file($file_array['tmp_name'], $_SERVER['DOCUMENT_ROOT'] . $address);
+    return $address;
+}
+
+/* Проверка флага аутентификации администратора */
+function user_is_admin(){
+    if (!isset($_SESSION['user_role'])){
+        return false;
+    }
+
+    return $_SESSION['user_role'] == 'admin';
+}
+
+/* Проверка флага ввода реквизитов аутентификации */
+function user_is_authenticated(){
+    return isset($_SESSION['user_role']);
+}
+
+
 /* Валидация числа с плавающей точкой */
 function validate_float($value)
 {
@@ -156,18 +260,9 @@ function validate_id($value)
     return $id;
 }
 
-/**
- * Сохранение файла
- *
- * @return string возвращает путь к сохраненному файлу
- */
-function image_store($file_array)
-{
-    /* Если файл получен, то сохраняем на диске, добавляем запись в базу данных и перенаправляем на ту же страницу*/
-    if (empty($file_array['tmp_name'])) return false;
-    $image = basename($file_array['name']);
-    $address = '/img/' . $image;
-    move_uploaded_file($file_array['tmp_name'], $_SERVER['DOCUMENT_ROOT'] . $address);
-    return $address;
-}
 
+
+
+
+
+?>

@@ -1,6 +1,10 @@
 <?php
 /* Загрузка общих функций и данных */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/../engine/functions.php';
+if (!user_is_admin()) {
+    header('Location: ' . $named_routes['auth.login']);
+    exit;
+}
 
 /* Идентификация действия */
 if (empty($_GET) && empty($_POST)) die('действие для выполнения не идентифицировано');

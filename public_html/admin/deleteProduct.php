@@ -2,6 +2,10 @@
 
 /* Загрузка общих функций и данных */
 require_once $_SERVER['DOCUMENT_ROOT'] . '/../engine/functions.php';
+if (!user_is_admin()) {
+    header('Location: ' . $named_routes['auth.login']);
+    exit;
+}
 
 if (empty($_GET)) die('метод запроса должен быть GET');
 

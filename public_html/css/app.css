@@ -4,6 +4,30 @@
   font-family: sans-serif;
 }
 
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+a.button, button.button {
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: center;
+  background-color: transparent;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+  display: block;
+}
+a.button:focus, button.button:focus {
+  box-shadow: 0 0 0 2px #ccc;
+  outline: none;
+}
+a.button:hover, button.button:hover {
+  color: white;
+  background-color: #999;
+}
+
 .container-thumbnails {
   display: flex;
   padding: 1rem;
